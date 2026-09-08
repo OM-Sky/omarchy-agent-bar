@@ -2589,9 +2589,11 @@ done
         assert_no_money(&result);
         match result {
             ProviderResult::Ready { windows, .. } => {
-                assert_eq!(windows.len(), 2);
+                assert_eq!(windows.len(), 4);
                 assert_eq!(windows[0].id(), "gemini-weekly");
                 assert_eq!(windows[1].id(), "gemini-5h");
+                assert_eq!(windows[2].id(), "3p-weekly");
+                assert_eq!(windows[3].id(), "3p-5h");
             }
             other => panic!("expected ready, got {other:?}"),
         }
@@ -2762,7 +2764,7 @@ done
             antigravity_collect_at_version(antigravity_output(0, "v1.2.0\n")).await;
         assert_eq!(calls, 2, "a supported version proceeds to the usage call");
         match result {
-            ProviderResult::Ready { windows, .. } => assert_eq!(windows.len(), 2),
+            ProviderResult::Ready { windows, .. } => assert_eq!(windows.len(), 4),
             other => panic!("expected ready, got {other:?}"),
         }
     }
