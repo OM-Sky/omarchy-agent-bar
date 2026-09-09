@@ -19,7 +19,7 @@ Item {
 
   readonly property string pluginRoot: manifest && manifest.__sourceDir
       ? String(manifest.__sourceDir)
-      : ""
+      : String(Qt.resolvedUrl(".")).replace(/^file:\/\//, "").replace(/\/$/, "")
 
   // Test harness: absolute helper path. Production uses pluginRoot/bin/agent-bar.
   property string helperPath: ""
@@ -126,6 +126,8 @@ Item {
       root = String(manifest.__sourceDir)
     else if (pluginRoot && pluginRoot.length > 0)
       root = pluginRoot
+    else
+      root = String(Qt.resolvedUrl(".")).replace(/^file:\/\//, "").replace(/\/$/, "")
     if (root && root.length > 0)
       return root + "/bin/agent-bar"
     return ""
