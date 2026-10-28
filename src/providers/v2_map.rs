@@ -26,6 +26,8 @@ const LABEL_GEMINI_SESSION: &str = "Gemini · Session (5h)";
 const LABEL_GEMINI_WEEKLY: &str = "Gemini · Weekly (7d)";
 const LABEL_3P_SESSION: &str = "Claude/GPT · Session (5h)";
 const LABEL_3P_WEEKLY: &str = "Claude/GPT · Weekly (7d)";
+const LABEL_ARGON_SESSION: &str = "Gemini 4 Argon · Session (5h)";
+const LABEL_ARGON_WEEKLY: &str = "Gemini 4 Argon · Weekly (7d)";
 
 // ---------------------------------------------------------------------------
 // Amp
@@ -950,11 +952,13 @@ pub fn antigravity_from_usage_json(stdout: &str, now: OffsetDateTime) -> Provide
     }
 
     // Named slots ensure fixed order: Gemini weekly -> 5h, then Claude/GPT weekly -> 5h,
-    // with per-id deduplication (first bucket wins).
+    // then Gemini 4 Argon weekly -> 5h, with per-id deduplication (first bucket wins).
     let mut gemini_weekly: Option<UsageWindow> = None;
     let mut gemini_session: Option<UsageWindow> = None;
     let mut tp_weekly: Option<UsageWindow> = None;
     let mut tp_session: Option<UsageWindow> = None;
+    let mut argon_weekly: Option<UsageWindow> = None;
+    let mut argon_session: Option<UsageWindow> = None;
 
     for bucket in usage
         .command
@@ -968,6 +972,12 @@ pub fn antigravity_from_usage_json(stdout: &str, now: OffsetDateTime) -> Provide
             "gemini-5h" => ("gemini-5h", LABEL_GEMINI_SESSION, &mut gemini_session),
             "3p-weekly" | "claude-weekly" => ("3p-weekly", LABEL_3P_WEEKLY, &mut tp_weekly),
             "3p-5h" | "claude-5h" => ("3p-5h", LABEL_3P_SESSION, &mut tp_session),
+            s if s.contains("argon") && (s.ends_with("5h") || s.contains("session")) => {
+                ("gemini-argon-5h", LABEL_ARGON_SESSION, &mut argon_session)
+            }
+            s if s.contains("argon") => {
+                ("gemini-argon-weekly", LABEL_ARGON_WEEKLY, &mut argon_weekly)
+            }
             _ => continue,
         };
         if slot.is_some() {
@@ -997,6 +1007,8 @@ pub fn antigravity_from_usage_json(stdout: &str, now: OffsetDateTime) -> Provide
         .chain(gemini_session)
         .chain(tp_weekly)
         .chain(tp_session)
+        .chain(argon_weekly)
+        .chain(argon_session)
         .collect();
 
     ProviderResult::Ready {
@@ -1654,7 +1666,7 @@ mod tests {
                 account,
                 ..
             } => {
-                assert_eq!(windows.len(), 4);
+                assert_eq!(windows.len(), 5);
 
                 assert_eq!(windows[0].id(), "gemini-weekly");
                 assert_eq!(windows[0].label(), LABEL_GEMINI_WEEKLY);
@@ -1692,6 +1704,15 @@ mod tests {
                     Some(datetime!(2026-08-23 04:25:14 UTC))
                 );
 
+                assert_eq!(windows[4].id(), "gemini-argon-weekly");
+                assert_eq!(windows[4].label(), LABEL_ARGON_WEEKLY);
+                assert!((windows[4].remaining_percent() - 98.0).abs() < 0.01);
+                assert!((windows[4].used_percent() - 2.0).abs() < 0.01);
+                assert_eq!(
+                    windows[4].resets_at(),
+                    Some(datetime!(2026-08-28 18:02:23 UTC))
+                );
+
                 assert!(plan.is_none());
                 assert!(account.is_none());
             }
@@ -1704,11 +1725,12 @@ mod tests {
         let fixture = include_str!("../../tests/fixtures/antigravity/usage.json");
         match antigravity_from_usage_json(fixture, datetime!(2026-08-21 12:00:00 UTC)) {
             ProviderResult::Ready { windows, .. } => {
-                assert_eq!(windows.len(), 4, "{windows:?}");
+                assert_eq!(windows.len(), 5, "{windows:?}");
                 assert!(windows.iter().any(|w| w.id() == "gemini-weekly"));
                 assert!(windows.iter().any(|w| w.id() == "gemini-5h"));
                 assert!(windows.iter().any(|w| w.id() == "3p-weekly"));
                 assert!(windows.iter().any(|w| w.id() == "3p-5h"));
+                assert!(windows.iter().any(|w| w.id() == "gemini-argon-weekly"));
             }
             other => panic!("expected ready, got {other:?}"),
         }

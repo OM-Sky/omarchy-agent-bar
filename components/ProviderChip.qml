@@ -20,6 +20,7 @@ WidgetButton {
   property real iconScale: 1.0
   property bool severityUrgent: false
   property string cueLabel: ""
+  property bool isWorking: false
 
   // The host tooltip is intentionally never set; this label exists for
   // assistive tech only and must stay single-line.
@@ -41,9 +42,11 @@ WidgetButton {
     spacing: Style.spacing.sm
 
     Item {
+      id: iconSlot
       width: Style.bar.iconCanvas
       height: Style.bar.iconCanvas
       anchors.verticalCenter: parent.verticalCenter
+      opacity: root.isWorking ? 0.6 : 1.0
 
       Image {
         id: mark

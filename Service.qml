@@ -1139,10 +1139,27 @@ Item {
     }
   }
 
+  property var activeProviders: ({})
+
+  function setWorking(providerId: string, state: string): string {
+    var pId = String(providerId || "")
+    var st = String(state || "")
+    var next = {}
+    for (var k in root.activeProviders) {
+      if (k !== pId) next[k] = root.activeProviders[k]
+    }
+    if (st === "working" || st === "true" || st === "busy") {
+      next[pId] = true
+    }
+    root.activeProviders = next
+    return "ok"
+  }
+
   IpcHandler {
     target: "othavi0.agent-bar"
     function health(expectedVersion: string): string { return root.health(expectedVersion) }
     function refresh(providerId: string): string { return root.refresh(providerId) }
+    function setWorking(providerId: string, state: string): string { return root.setWorking(providerId, state) }
   }
 
   onHelperPathChanged: root.tryStartProduction()

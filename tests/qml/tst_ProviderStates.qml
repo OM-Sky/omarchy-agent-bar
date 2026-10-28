@@ -515,6 +515,23 @@ TestCase {
     compare(layout.lead.id, "gemini-5h")
   }
 
+  function test_antigravity_all_five_windows_including_argon() {
+    var layout = layoutOf([
+      { id: "gemini-weekly", label: "Gemini · Weekly (7d)", usedPercent: 4, remainingPercent: 96,
+        resetsAt: "2026-09-14T14:43:14Z" },
+      { id: "gemini-5h", label: "Gemini · Session (5h)", usedPercent: 8, remainingPercent: 92,
+        resetsAt: "2026-09-08T18:15:56Z" },
+      { id: "3p-weekly", label: "Claude/GPT · Weekly (7d)", usedPercent: 34, remainingPercent: 66,
+        resetsAt: "2026-09-14T15:09:07Z" },
+      { id: "3p-5h", label: "Claude/GPT · Session (5h)", usedPercent: 30, remainingPercent: 70,
+        resetsAt: "2026-09-08T22:05:21Z" },
+      { id: "gemini-argon-weekly", label: "Gemini 4 Argon · Weekly (7d)", usedPercent: 2, remainingPercent: 98,
+        resetsAt: "2026-09-15T18:00:00Z" }
+    ], "2026-09-08T17:00:00Z")
+    compare(layout.lead.id, "3p-5h")
+    compare(layout.rest.length, 4)
+  }
+
   function test_lines_carry_raw_percentages_and_countdown() {
     var layout = layoutOf([
       { id: "session", label: "Session (5h)", usedPercent: 31, remainingPercent: 69,

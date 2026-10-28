@@ -42,6 +42,13 @@
           "usedPercent": 0.0,
           "remainingPercent": 100.0,
           "resetsAt": "2026-08-23T04:25:14Z"
+        },
+        {
+          "id": "gemini-argon-weekly",
+          "label": "Gemini 4 Argon · Weekly (7d)",
+          "usedPercent": 2.0,
+          "remainingPercent": 98.0,
+          "resetsAt": "2026-08-28T18:02:23Z"
         }
       ],
       "lastSuccessAt": "2026-08-21T12:00:00Z",
